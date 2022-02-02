@@ -1,0 +1,49 @@
+version: '2'
+
+volumes:
+  settings:                          # Only required if using PERSISTANT flag (see below)
+  sense-data:
+  dashboard-data:
+  
+services:
+
+  pulse:
+    image: balenablocks/pulse
+    restart: always
+    privileged: true
+    labels:
+      io.balena.features.supervisor-api: '1'
+    expose:
+      - '7575'
+	  
+  mqtt:
+    image: eclipse-mosquitto:1.6.15
+    ports:
+      - "1883:1883"
+    restart: always  
+
+  connector:
+    image: balenablocks/connector
+    restart: always
+    labels:
+      io.balena.features.balena-api: '1' # necessary to discover services
+      io.balena.features.supervisor-api: 1  # necessary to discover services in local mode
+    privileged: true # necessary to change container hostname
+
+  influxdb:
+    restart: always
+    image: arm32v7/influxdb@sha256:2fed9b09a672cab330ac3ea1f03616e6821f2235bda64d549f605ef0d7081911
+    volumes:
+      - 'sense-data:/var/lib/influxdb'
+  dashboard:
+    image: balenablocks/dashboard
+    restart: always
+    volumes:
+        - 'dashboard-data:/data'
+    ports:
+        - '80'
+  pytest:
+    build: ./pytest
+    restart: always
+    privileged: true
+    
