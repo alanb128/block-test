@@ -1,0 +1,11 @@
+ARG BALENA_ARCH=%%BALENA_ARCH%%
+
+FROM balenalib/$BALENA_ARCH-debian-python
+
+WORKDIR /usr/src/app
+
+RUN python -m pip install requests paho-mqtt
+
+COPY . .
+
+CMD ["python3", "test.py"]
